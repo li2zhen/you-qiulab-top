@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hi！秋宝！</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Noto+Serif+SC:wght@200;300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  background: #0d0707;
+  color: #f5f0eb;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  scroll-snap-type: y proximity;
+  scroll-snap-stop: normal;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(212,167,116,0.3); border-radius: 2px; }
+
+/* Canvas */
+#particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+
+/* Section base */
+.section {
+  min-height: 100vh; scroll-snap-align: start;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative; z-index: 2; padding: 6rem 2rem; text-align: center;
+}
+
+/* Music */
+.music-btn {
+  position: fixed; top: 20px; right: 20px; z-index: 1000;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(212,167,116,0.12); border: 1px solid rgba(212,167,116,0.25);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  color: #d4a574; font-size: 1.1rem; cursor: pointer;
+  transition: all 0.4s; display: flex; align-items: center; justify-content: center;
+}
+.music-btn:hover { background: rgba(212,167,116,0.25); transform: scale(1.1); }
+.music-btn.playing { background: rgba(212,167,116,0.22); border-color: rgba(212,167,116,0.5); }
+
+/* Timer link */
+.timer-link {
+  position: fixed; top: 20px; left: 20px; z-index: 1000;
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 24px;
+  background: rgba(212,167,116,0.12); border: 1px solid rgba(212,167,116,0.25);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  color: #d4a574; text-decoration: none; font-size: 0.85rem;
+  letter-spacing: 0.05em; transition: all 0.4s;
+}
+.timer-link:hover { background: rgba(212,167,116,0.25); transform: translateY(-1px); }
+
+/* Nav dots */
+.nav-dots {
+  position: fixed; right: 24px; top: 50%; transform: translateY(-50%);
+  z-index: 1000; display: flex; flex-direction: column; gap: 14px;
+}
+.nav-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 1px solid rgba(212,167,116,0.35); background: transparent;
+  cursor: pointer; transition: all 0.4s;
+}
+.nav-dot:hover { border-color: #d4a574; background: rgba(212,167,116,0.3); }
+.nav-dot.active { background: #d4a574; border-color: #d4a574; box-shadow: 0 0 8px rgba(212,167,116,0.5); }
+
+/* Typography */
+.subtitle {
+  font-size: clamp(0.8rem, 2vw, 0.95rem); letter-spacing: 0.3em;
+  color: #d4a574; text-transform: uppercase; margin-bottom: 1.2rem;
+}
+
+/* ─── SECTION 1: HERO ─── */
+.hero { background: radial-gradient(ellipse at center, #1a0a0a 0%, #0d0707 70%); }
+.hero .names { display: flex; gap: clamp(0.5rem, 2vw, 1.5rem); align-items: baseline; flex-wrap: wrap; justify-content: center; }
+.hero .name {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 300; letter-spacing: 0.08em;
+  background: linear-gradient(180deg, #f5f0eb 0%, #d4a574 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  opacity: 0; transform: translateY(30px); animation: fadeUp 1.2s 0.3s forwards;
+}
+.hero .ampersand {
+  font-family: 'Playfair Display', serif; font-size: clamp(2rem, 6vw, 4rem);
+  font-style: italic; color: #d4a574; font-weight: 300;
+  opacity: 0; transform: scale(0); animation: popIn 0.6s 0.8s forwards;
+}
+.hero .tagline {
+  margin-top: 1.5rem; font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+  letter-spacing: 0.2em; color: rgba(212,167,116,0.7);
+  opacity: 0; animation: fadeUp 1s 1.2s forwards;
+}
+.hero .counter {
+  margin-top: 2rem; font-size: 0.95rem; color: rgba(245,240,235,0.45); letter-spacing: 0.1em;
+  opacity: 0; animation: fadeUp 1s 1.5s forwards;
+}
+.hero .counter span { color: #d4a574; font-size: 1.4rem; font-weight: 600; }
+.scroll-hint {
+  position: absolute; bottom: 2.5rem; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  opacity: 0; animation: fadeUp 1s 1.8s forwards;
+}
+.scroll-hint span { font-size: 0.7rem; letter-spacing: 0.3em; color: rgba(212,167,116,0.4); }
+.scroll-hint .arrow { font-size: 1rem; animation: bounceArrow 2s infinite; }
+
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+@keyframes popIn { to { opacity: 1; transform: scale(1); } }
+@keyframes bounceArrow { 0%,100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(10px); opacity: 1; } }
+
+/* ─── SECTION 2: LOVE LETTER ─── */
+.letter-section { background: linear-gradient(180deg, #0f0909 0%, #140c0c 50%, #0f0909 100%); }
+.letter-container {
+  max-width: 720px; width: 100%; margin-top: 2.5rem;
+  padding: 3rem 2.5rem; border-radius: 16px;
+  background: rgba(212,167,116,0.04); border: 1px solid rgba(212,167,116,0.12);
+  position: relative;
+  opacity: 0; transform: translateY(30px);
+  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.letter-container.visible { opacity: 1; transform: translateY(0); }
+.letter-container::before {
+  content: '"'; position: absolute; top: -20px; left: 30px;
+  font-family: 'Playfair Display', serif; font-size: 6rem;
+  color: rgba(212,167,116,0.15); line-height: 1; pointer-events: none;
+}
+.letter-content {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(0.95rem, 2vw, 1.05rem); line-height: 2.2;
+  color: rgba(245,240,235,0.65); text-align: left; letter-spacing: 0.03em;
+}
+.letter-content p { margin-bottom: 1.2rem; text-indent: 2em; }
+.letter-content p:last-child { margin-bottom: 0; }
+@media (max-width: 640px) {
+  .letter-container { padding: 2rem 1.5rem; }
+}
+
+/* ─── SECTION 3: PROPOSAL ─── */
+.proposal-section { background: radial-gradient(ellipse at center, #1f0c0c 0%, #0d0707 70%); }
+.proposal-inner {
+  opacity: 0; transform: translateY(30px);
+  transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.proposal-inner.visible { opacity: 1; transform: translateY(0); }
+.proposal-poem {
+  font-size: clamp(1rem, 3vw, 1.35rem); line-height: 2.4; letter-spacing: 0.06em;
+  margin-bottom: 3rem; color: rgba(245,240,235,0.75);
+}
+.proposal-poem em { font-style: italic; color: #d4a574; font-size: 1.15em; }
+.big-q {
+  font-family: 'Playfair Display', 'Noto Serif SC', serif;
+  font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 300; letter-spacing: 0.06em;
+  color: #d4a574;
+  text-shadow: 0 0 60px rgba(212,167,116,0.4), 0 0 120px rgba(212,167,116,0.2);
+  margin-bottom: 1rem;
+  animation: gentlePulse 3s ease-in-out infinite;
+}
+@keyframes gentlePulse {
+  0%, 100% { text-shadow: 0 0 60px rgba(212,167,116,0.4), 0 0 120px rgba(212,167,116,0.2); }
+  50% { text-shadow: 0 0 80px rgba(212,167,116,0.7), 0 0 160px rgba(212,167,116,0.35); }
+}
+.coda {
+  margin-top: 2.5rem; font-family: 'Noto Serif SC', serif;
+  font-size: clamp(0.9rem, 2vw, 1.05rem); color: rgba(212,167,116,0.55);
+  line-height: 2.2; letter-spacing: 0.04em; max-width: 560px;
+}
+
+/* ─── FOOTER ─── */
+.footer {
+  min-height: 45vh; scroll-snap-align: start;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: #0d0707; text-align: center; padding: 4rem 2rem; position: relative; z-index: 2;
+}
+.footer .quote {
+  font-family: 'Playfair Display', serif; font-style: italic;
+  font-size: clamp(1rem, 3vw, 1.4rem); color: rgba(245,240,235,0.5);
+  line-height: 2; max-width: 560px; margin-bottom: 2.5rem;
+}
+.footer .sign { font-size: 0.8rem; color: rgba(212,167,116,0.35); letter-spacing: 0.15em; }
+
+/* APlayer */
+.aplayer {
+  position: fixed; bottom: 16px; left: 16px; z-index: 999;
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  max-width: 320px; transition: opacity 0.5s, transform 0.5s;
+}
+.aplayer .aplayer-lrc { display: none; }
+.aplayer.aplayer-narrow { max-width: 66px; }
+.aplayer.aplayer-narrow .aplayer-info { display: none; }
+.aplayer.aplayer-narrow .aplayer-list { display: none; }
+.aplayer .aplayer-miniswitcher { display: none; }
+@media (max-width: 480px) {
+  .aplayer { max-width: 260px; bottom: 8px; left: 8px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<button class="music-btn" id="musicBtn" title="播放音乐">🎵</button>
+
+<a href="https://love.qiulab.top/" target="_blank" class="timer-link" title="查看我们的计时器">
+  <span style="font-size:1rem;">⏳</span> Love Timer
+</a>
+
+<nav class="nav-dots" id="navDots">
+  <div class="nav-dot active" data-section="0"></div>
+  <div class="nav-dot" data-section="1"></div>
+  <div class="nav-dot" data-section="2"></div>
+</nav>
+
+<!-- ══════════════ SECTION 1: HERO ══════════════ -->
+<section class="section hero" data-section="0">
+  <div class="names">
+    <h1 class="name">球球</h1>
+    <span class="ampersand">&amp;</span>
+    <h1 class="name">荔枝树</h1>
+  </div>
+  <p class="tagline">✦ 我们的故事 ✦</p>
+  <div class="counter">
+    已经和你一起走过了 <span id="dayCount">0</span> 天
+  </div>
+  <div class="scroll-hint">
+    <span>向下翻页</span>
+    <span class="arrow">↓</span>
+  </div>
+</section>
+
+<!-- ══════════════ SECTION 2: LOVE LETTER ══════════════ -->
+<section class="section letter-section" data-section="1">
+  <p class="subtitle">A Letter To You</p>
+  <h2 style="font-size:clamp(2rem,6vw,3.5rem);font-weight:300;letter-spacing:0.1em;color:#d4a574;">✦ 写给你 ✦</h2>
+  <div class="letter-container" id="letterContainer">
+    <div class="letter-content">
+      <p>秋秋：</p>
+      <p>写下这两个字的时候，窗外正在下雨，马上我就要骑车下班，顶着在灰蓝的天空下回家。春夏之交的雨细细碎碎的，吹在脸上很柔软，我不讨厌，现在想来；苏州那个屋檐的雨和这里很像，碎碎的，轻轻的，像你睡着时睫毛偶尔颤动。我突然很想你。</p>
+      <p>我开了很久的头，一直不知道怎么写，青岛海滩上弯腰时吹起的碎花裙、平江路河畔拉我向前走摇曳的裙摆、深夜陪我值班淋雨沾湿的衣角。不知道从哪一个瞬间、哪一个细节开始回忆，总怕厚此薄彼，说了一件事没说另一件事，让我们珍惜的这些日子蒙了尘、褪了色。</p>
+      <p>但我必须说给你听，没有什么非说不可的话：每天晚上的吃什么、早上出门前的吻和早安、困倦时你环过来要我抱的咕哝，每一天我们在说着。而是我想让你在很久以后，久到我们满脸皱纹、缺了牙的时候，还能想起今天，看到二十六岁的荔枝树，是怎么用他笨拙的方式表达我爱你。</p>
+      <p>你还记得北寺塔那个拐角吗？苏州的清晨，我坐在你电瓶车后座，侧脸贴着你的背。白T恤被风吹得鼓起来，头顶是浅浅的蓝天和白墙黑瓦，路好像很短很短。其实我在后面偷偷打盹，但搂着你的手从来没有松过。那个瞬间我觉得这就是"永远"的形状，不是什么宏大的誓词，不是什么华丽的仪式，就是你骑着车在前面，我在后面抱着你，路边的房子矮矮地延伸到尽头。</p>
+      <p>我这个人，按你很久之前写给我的说法，是"目标坚定的人大踏步上前"。可你知不知道，我其实很脆弱，很多时候只有脑海里你的一颦一笑是我的一线生机。哪些闪闪发光的理想，如果没有你听我吐槽学习工作，然后咯咯的笑，没有你在我写标书拧眉头时悄悄塞过来的一杯西瓜奶茶椰子水——它们会黯然失色，再也不能称之为理想。</p>
+      <p>有时候我想，我对你的喜欢到底是什么形状的呢？</p>
+      <p>是崂山顶上，你安安静静点香火、挂祈福布条时，我们看红日青山、晚风回唱；我站在你身后突然心脏停了一拍的那种喜欢。是周末假期小屋里，我装睡等你叫"抱我"，然后一把把你捞进怀里的那种喜欢。是每次在9号线的扶梯上，看到你小小的身影等在出站口，心里像开了一罐摇晃过的汽水的那种喜欢。</p>
+      <p>但更多的时候，它不是一瞬间的剧烈——一瞬间的心动分散在每一个春秋。它是我每天睁开眼睛想到的第一个名字。是逛街时习惯性地把手空出来等你揣进来。是你撒娇的时候，我无奈又宠溺地说"这个宝"，然后心甘情愿地被你怼到吃瘪。</p>
+      <p>秋，我想和你一起越过群山。</p>
+      <p>不是坐索道上去的，是一步一步走的，从天亮走到天黑，气喘吁吁的，满头大汗的。可能中途你会说"走不动了走不动了"，然后我在前面等你，拉你一把，或者如果你愿意，就干脆背你走一段。等到了山顶，我们就安安静静地坐下来，看日落把海面染成你最喜欢的颜色。然后下山去，在渔村的灯火里找一家小店，你点你最爱的奶茶，我负责把你吃剩下的消灭干净。</p>
+      <p>我想要的未来很小很小，你在房间那头噼里啪啦做你的事，我在这头看书或者看你，我们的小猫小狗在我们中间走来走去、追逐打闹。夏天24度空调，西瓜对半切，你凑过来拿勺子挖走最中间那块。等我退休了，我们就重新读一遍这个网站上的每一封信，读到我脸红、你笑出声为止。</p>
+      <p>别怕好梦难留、别怕爱意稍纵即逝。我要认真对你说：</p>
+      <p>秋，我爱你。从第一眼到今天，从今天到很久以后，从很久以后到久得算不清——都不会变。</p>
+      <p>我不是一个擅长浪漫的人。但我要认真地记住你喜欢什么花、什么季节、什么温度，然后在你犯困的时候像刮小猫一样托着你的下巴，在你洗完澡后给你吹头发。我的浪漫是每天晚上闭眼前确认你在怀里，是攒了很久的钱想带你去你提过的每一个地方。</p>
+      <p>我曾经在自己的文字里写，"思念之物若能饱腹，烧手之患亦不辞"。现在我想改一改——</p>
+      <p style="text-align:center;text-indent:0;color:#d4a574;font-weight:600;font-size:1.1em;">爱你若能饱腹，烧手之患亦不辞。</p>
+      <p style="text-align:right;text-indent:0;color:rgba(212,167,116,0.55);">荔枝树<br>2026.5.19 于上海</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ SECTION 3: PROPOSAL ══════════════ -->
+<section class="section proposal-section" data-section="2">
+  <div class="proposal-inner" id="proposalInner">
+    <p class="subtitle">The Question</p>
+    <div class="proposal-poem">
+      你是我<br>翻山越岭也要见的人<br>是我漫长余生里<br><em>唯一想要的答案</em>
+    </div>
+    <div class="big-q">Will You Marry Me?</div>
+    <div class="coda">
+      越过群山之后<br>你想和我一起去下一个地方吗？
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="footer" data-section="3">
+  <p class="quote">"In all the world, there is no heart for me like yours.<br>In all the world, there is no love for you like mine."</p>
+  <p class="sign">— Made with ❤️ by 李臻</p>
+</footer>
+
+<div id="aplayer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/meting@2.0.1/dist/Meting.min.js"></script>
+
+<script>
+/* ────── CONFIG ────── */
+const START_DATE = new Date('2023-03-17');
+
+/* ────── Date Counter ────── */
+const dayCountEl = document.getElementById('dayCount');
+function updateCounter() {
+  const now  = new Date();
+  const diff = Math.floor((now - START_DATE) / 1000);
+  const days    = Math.floor(diff / 86400);
+  const hours   = String(Math.floor((diff % 86400) / 3600)).padStart(2, '0');
+  const minutes = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+  const seconds = String(diff % 60).padStart(2, '0');
+  dayCountEl.innerHTML = days + '<span style="font-size:0.85rem;opacity:0.7;margin-left:6px;">天 ' + hours + ':' + minutes + ':' + seconds + '</span>';
+}
+updateCounter();
+setInterval(updateCounter, 1000);
+
+/* ────── Music ────── */
+const musicBtn = document.getElementById('musicBtn');
+let playing = true;
+musicBtn.classList.add('playing');
+function setupMusicControl() {
+  musicBtn.addEventListener('click', () => {
+    const aud = document.querySelector('#aplayer audio');
+    if (!aud) return;
+    if (playing) {
+      aud.pause();
+      musicBtn.textContent = '🔇';
+      musicBtn.classList.remove('playing');
+    } else {
+      aud.play().catch(() => {});
+      musicBtn.textContent = '🎵';
+      musicBtn.classList.add('playing');
+    }
+    playing = !playing;
+  });
+}
+window.addEventListener('load', () => {
+  setTimeout(setupMusicControl, 1500);
+});
+
+/* ────── Scroll Animations ────── */
+const animObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      animObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.2, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.letter-container, #proposalInner').forEach(el => {
+  animObserver.observe(el);
+});
+
+/* ────── Nav Dots ────── */
+const navDots = document.querySelectorAll('.nav-dot');
+const sections = document.querySelectorAll('[data-section]');
+
+function updateNavDots() {
+  let activeIdx = 0;
+  const scrollY = window.scrollY + window.innerHeight * 0.3;
+  sections.forEach((s, i) => {
+    if (s.offsetTop <= scrollY) activeIdx = i;
+  });
+  navDots.forEach(d => d.classList.remove('active'));
+  if (navDots[activeIdx]) navDots[activeIdx].classList.add('active');
+}
+
+let scrollTicking = false;
+window.addEventListener('scroll', () => {
+  if (!scrollTicking) {
+    requestAnimationFrame(() => { updateNavDots(); scrollTicking = false; });
+    scrollTicking = true;
+  }
+}, { passive: true });
+
+navDots.forEach(dot => {
+  dot.addEventListener('click', () => {
+    const idx = parseInt(dot.dataset.section);
+    if (sections[idx]) {
+      sections[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+/* ────── Floating Hearts Canvas ────── */
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let w, h;
+const hearts = [];
+
+function resize() {
+  w = canvas.width  = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+class Heart {
+  constructor() { this.reset(); this.y = Math.random() * h; }
+  reset() {
+    this.x = Math.random() * w;
+    this.y = h + 30;
+    this.size = Math.random() * 16 + 5;
+    this.speed = Math.random() * 0.5 + 0.15;
+    this.opacity = Math.random() * 0.22 + 0.06;
+    this.wobble = Math.random() * 0.6;
+    this.wobbleSpeed = Math.random() * 0.015 + 0.005;
+    this.wobbleOffset = Math.random() * Math.PI * 2;
+  }
+  update() {
+    this.y -= this.speed;
+    this.x += Math.sin(this.y * this.wobbleSpeed + this.wobbleOffset) * this.wobble;
+    if (this.y < -40) this.reset();
+  }
+  draw(ctx) {
+    ctx.save();
+    ctx.globalAlpha = this.opacity;
+    ctx.fillStyle = '#d4a574';
+    ctx.translate(this.x, this.y);
+    const s = this.size;
+    ctx.beginPath();
+    ctx.moveTo(0, s * 0.25);
+    ctx.bezierCurveTo(0, 0, -s * 0.6, 0, -s * 0.6, s * 0.25);
+    ctx.bezierCurveTo(-s * 0.6, s * 0.6, 0, s * 0.9, 0, s);
+    ctx.bezierCurveTo(0, s * 0.9, s * 0.6, s * 0.6, s * 0.6, s * 0.25);
+    ctx.bezierCurveTo(s * 0.6, 0, 0, 0, 0, s * 0.25);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+for (let i = 0; i < 45; i++) hearts.push(new Heart());
+
+function animate() {
+  ctx.clearRect(0, 0, w, h);
+  hearts.forEach(h => { h.update(); h.draw(ctx); });
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+<meting-js
+  server="netease"
+  type="playlist"
+  id="5071071337"
+  fixed="true"
+  autoplay="true"
+  order="random"
+  loop="all"
+  preload="auto"
+  list-max-height="200px">
+</meting-js>
+
+</body>
+</html>
